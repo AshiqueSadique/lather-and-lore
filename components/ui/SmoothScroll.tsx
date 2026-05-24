@@ -17,16 +17,20 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
     if (prefersReducedMotion) return;
 
+    const isTouch = window.matchMedia("(hover: none)").matches;
+
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: isTouch ? 0.8 : 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      touchMultiplier: 2,
+      // On touch devices, use a lighter touch multiplier so native feel is preserved
+      touchMultiplier: isTouch ? 1.5 : 2,
       infinite: false,
+      // Allow native momentum on iOS
+      syncTouch: isTouch,
     });
 
     lenisRef.current = lenis;
 
-    // Sync Lenis scroll with GSAP's ScrollTrigger
     lenis.on("scroll", ScrollTrigger.update);
 
     gsap.ticker.add((time) => {
@@ -37,9 +41,6 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
     return () => {
       lenis.destroy();
-      gsap.ticker.remove((time) => {
-        lenis.raf(time * 1000);
-      });
     };
   }, []);
 

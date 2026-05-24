@@ -14,10 +14,13 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
-  scroll-behavior: auto; /* Lenis handles this */
+  scroll-behavior: auto;
+  /* Prevent iOS font size inflation */
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -25,147 +28,113 @@ body {
   color: var(--charcoal);
   font-family: "Inter", system-ui, sans-serif;
   overflow-x: hidden;
-  cursor: none; /* Custom cursor replaces default */
+  /* Only hide cursor on pointer devices */
+  cursor: auto;
 }
 
-/* Hide cursor on mobile */
-@media (hover: none) {
+@media (hover: hover) and (pointer: fine) {
   body {
-    cursor: auto;
+    cursor: none;
   }
 }
 
-/* ─── Paper grain texture overlay ─── */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 200px 200px;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.35;
-  mix-blend-mode: multiply;
-  animation: grain 8s steps(10) infinite;
+/* ─── Paper grain texture overlay — disabled on mobile for perf ─── */
+@media (hover: hover) {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    animation: grain 8s steps(10) infinite;
+  }
 }
 
 @keyframes grain {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  10% {
-    transform: translate(-2%, -3%);
-  }
-  20% {
-    transform: translate(3%, 1%);
-  }
-  30% {
-    transform: translate(-1%, 4%);
-  }
-  40% {
-    transform: translate(4%, -2%);
-  }
-  50% {
-    transform: translate(-3%, 3%);
-  }
-  60% {
-    transform: translate(2%, -4%);
-  }
-  70% {
-    transform: translate(-4%, 1%);
-  }
-  80% {
-    transform: translate(3%, -3%);
-  }
-  90% {
-    transform: translate(-2%, 4%);
-  }
+  0%, 100% { transform: translate(0, 0); }
+  10%  { transform: translate(-2%, -3%); }
+  20%  { transform: translate(3%, 1%); }
+  30%  { transform: translate(-1%, 4%); }
+  40%  { transform: translate(4%, -2%); }
+  50%  { transform: translate(-3%, 3%); }
+  60%  { transform: translate(2%, -4%); }
+  70%  { transform: translate(-4%, 1%); }
+  80%  { transform: translate(3%, -3%); }
+  90%  { transform: translate(-2%, 4%); }
 }
 
-/* ─── Lenis smooth scroll base ─── */
+/* ─── Lenis smooth scroll ─── */
 html.lenis,
 html.lenis body {
   height: auto;
 }
-
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
 .lenis.lenis-stopped {
   overflow: hidden;
 }
 
 /* ─── Typography ─── */
-.font-serif {
-  font-family: "Cormorant Garamond", Georgia, serif;
-}
-
-h1,
-h2,
-h3 {
+h1, h2, h3 {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-weight: 400;
 }
 
-/* ─── Clip path helpers ─── */
-.clip-reveal {
+/* ─── Touch target minimum size ─── */
+a, button, [role="button"], [tabindex="0"] {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Override for spans and purely visual elements */
+span[aria-hidden="true"], div[aria-hidden="true"] {
+  min-height: unset;
+  min-width: unset;
+}
+
+/* ─── Marquee animation ─── */
+@keyframes marquee {
+  0%   { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ─── Hero split-text ─── */
+.split-letter {
+  display: inline-block;
+  will-change: transform, opacity;
   clip-path: inset(0 0 100% 0);
 }
 
-.clip-revealed {
-  clip-path: inset(0 0 0% 0);
-}
-
-/* ─── Section curve dividers ─── */
-.wave-divider {
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  overflow: hidden;
-  line-height: 0;
-}
-
-.wave-divider svg {
-  display: block;
-  width: 100%;
-  height: 60px;
-}
-
-/* ─── Magnetic button base ─── */
-.magnetic {
-  position: relative;
-  display: inline-flex;
-  will-change: transform;
-}
-
-/* ─── Card blob image mask ─── */
-.img-blob {
-  border-radius: 60% 40% 55% 45% / 45% 55% 45% 55%;
+/* ─── Custom cursor — pointer devices only ─── */
+@media (hover: hover) and (pointer: fine) {
+  #cursor-dot {
+    pointer-events: none;
+    position: fixed;
+    z-index: 99999;
+    mix-blend-mode: difference;
+  }
+  #cursor-ring {
+    pointer-events: none;
+    position: fixed;
+    z-index: 99998;
+  }
 }
 
 /* ─── Scrollbar ─── */
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--cream);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--terracotta);
-  border-radius: 2px;
-}
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--terracotta); border-radius: 2px; }
 
 /* ─── Selection ─── */
 ::selection {
@@ -173,41 +142,34 @@ h3 {
   color: var(--cream);
 }
 
+/* ─── Mobile: disable heavy scroll animations ─── */
+@media (max-width: 767px) {
+  .process-desktop-pin { display: none; }
+  .process-mobile-list { display: block; }
+}
+@media (min-width: 768px) {
+  .process-desktop-pin { display: block; }
+  .process-mobile-list { display: none; }
+}
+
 /* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
-  body::before {
-    animation: none;
-  }
-  * {
+  body::before { animation: none; }
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
 }
 
-/* ─── Hero split-text letter wrappers ─── */
-.split-letter {
-  display: inline-block;
-  will-change: transform, opacity;
-  clip-path: inset(0 0 100% 0);
+/* ─── Mobile nav overlay ─── */
+.mobile-nav-open {
+  overflow: hidden;
 }
 
-/* ─── Process section ─── */
-.process-stage {
-  will-change: opacity, transform;
+/* ─── Safe area insets for notched phones ─── */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-
-/* ─── Custom cursor ─── */
-#cursor-dot {
-  pointer-events: none;
-  position: fixed;
-  z-index: 99999;
-  mix-blend-mode: difference;
-  transition: transform 0.15s ease;
-}
-
-#cursor-ring {
-  pointer-events: none;
-  position: fixed;
-  z-index: 99998;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
 }

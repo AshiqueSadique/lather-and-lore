@@ -7,14 +7,7 @@ export const metadata: Metadata = {
   title: "Lather & Lore — Artisan Botanical Soaps",
   description:
     "Small-batch, cold-process soaps hand-poured in Provence. Each bar crafted from certified organic botanicals for a slow, sensory ritual.",
-  keywords: [
-    "artisan soap",
-    "botanical soap",
-    "cold process",
-    "Provence",
-    "handmade soap",
-    "luxury soap",
-  ],
+  keywords: ["artisan soap", "botanical soap", "cold process", "Provence", "handmade soap", "luxury soap"],
   authors: [{ name: "Lather & Lore" }],
   openGraph: {
     title: "Lather & Lore — Artisan Botanical Soaps",
@@ -28,13 +21,12 @@ export const viewport: Viewport = {
   themeColor: "#F5EFE6",
   width: "device-width",
   initialScale: 1,
+  // Prevent iOS auto-zoom on input focus
+  maximumScale: 5,
+  userScalable: true,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="lenis">
       <body>
