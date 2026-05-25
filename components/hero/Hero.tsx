@@ -262,7 +262,7 @@ export default function Hero() {
       <MobileNav open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
 
       {/* ── Main layout ────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex-1 flex flex-col md:flex-row items-center px-5 md:px-16 pt-6 md:pt-8 pb-24 md:pb-20 gap-6 md:gap-8">
+      <div className="relative z-10 flex-1 flex flex-col md:flex-row items-center px-5 md:px-16 pt-6 md:pt-8 pb-8 md:pb-12 gap-6 md:gap-8">
         {/* Left: headline + meta */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full">
           <motion.div
@@ -391,41 +391,57 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* ── Bottom tagline marquee ──────────────────────────────────────── */}
+      {/* ── Tagline marquee — in flow, never overlaps content ──────────── */}
       <div
         aria-hidden="true"
-        className="absolute bottom-20 md:bottom-24 left-0 right-0 overflow-hidden border-t border-b border-charcoal/8 py-2.5 opacity-40 pointer-events-none"
+        className="relative z-10 w-full overflow-hidden border-t border-b border-charcoal/8 py-2.5 opacity-40 pointer-events-none"
       >
-        <div className="flex whitespace-nowrap" style={{ animation: "marquee 20s linear infinite" }}>
-          {[...Array(4)].flatMap(() =>
-            ["Small-Batch Crafted", "·", "Botanical Purity", "·", "Slow Luxury", "·", "Hand-Poured", "·"]
-          ).map((item, i) => (
-            <span key={i} className="font-sans text-[10px] md:text-xs tracking-[0.3em] uppercase text-charcoal/60 mx-4 md:mx-6">
-              {item}
-            </span>
-          ))}
+        <div
+          className="flex whitespace-nowrap"
+          style={{ animation: "marquee 20s linear infinite" }}
+        >
+          {[...Array(4)]
+            .flatMap(() => ["Small-Batch Crafted", "·", "Botanical Purity", "·", "Slow Luxury", "·", "Hand-Poured", "·"])
+            .map((item, i) => (
+              <span
+                key={i}
+                className="font-sans text-[10px] md:text-xs tracking-[0.3em] uppercase text-charcoal/60 mx-4 md:mx-6"
+              >
+                {item}
+              </span>
+            ))}
         </div>
       </div>
 
-      {/* ── Scroll hint ──────────────────────────────────────────────────── */}
-      <div
-        ref={scrollHintRef}
-        className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 z-20 pointer-events-none"
-        aria-label="Scroll to explore"
-      >
-        <span className="font-sans text-[10px] tracking-[0.3em] uppercase text-charcoal/40">Scroll</span>
-        <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+      {/* ── Scroll hint + wave footer ─────────────────────────────────── */}
+      <div className="relative z-10 flex flex-col items-center justify-end pb-3 pt-4" style={{ minHeight: "56px" }}>
+        <div
+          ref={scrollHintRef}
+          className="flex flex-col items-center gap-1.5 pointer-events-none"
+          aria-label="Scroll to explore"
         >
-          <ChevronDown size={15} className="text-charcoal/40" />
-        </motion.div>
+          <span className="font-sans text-[10px] tracking-[0.3em] uppercase text-charcoal/40">Scroll</span>
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ChevronDown size={15} className="text-charcoal/40" />
+          </motion.div>
+        </div>
       </div>
 
-      {/* ── Bottom wave divider ───────────────────────────────────────── */}
+      {/* ── Wave divider ─────────────────────────────────────────────── */}
       <div aria-hidden="true" className="absolute bottom-0 left-0 right-0 pointer-events-none">
-        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" className="w-full" style={{ display: "block", height: "60px" }}>
-          <path d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,60 L0,60 Z" fill="#EDE4D7" />
+        <svg
+          viewBox="0 0 1440 60"
+          preserveAspectRatio="none"
+          className="w-full"
+          style={{ display: "block", height: "60px" }}
+        >
+          <path
+            d="M0,30 C240,60 480,0 720,30 C960,60 1200,0 1440,30 L1440,60 L0,60 Z"
+            fill="#EDE4D7"
+          />
         </svg>
       </div>
     </section>
