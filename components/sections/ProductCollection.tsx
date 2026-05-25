@@ -17,7 +17,7 @@ const PRODUCTS = [
     description: "Activated bamboo charcoal draws out impurities deep within the pores, while bergamot and vetiver ground the senses. A bar for the bold.",
     color: "#2C2820",
     accent: "#5A4A38",
-    image: "https://images.unsplash.com/photo-1583922606661-0822ed0bd916?w=600&q=80",
+    image: "https://images.unsplash.com/photo-1622116500760-1753e5973ec7?w=600&q=80",
     imageAlt: "Dark charcoal soap bar",
   },
   {
