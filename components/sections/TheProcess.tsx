@@ -35,7 +35,7 @@ const STAGES = [
     headline: "Colour flows\nlike watercolour.",
     body: "The traced soap is poured in layers into hand-carved wooden moulds. Natural pigments — French clay, activated charcoal, turmeric — swirl into each bar's unique pattern.",
     ingredients: ["French Clay", "Turmeric", "Indigo", "Activated Charcoal"],
-    image: "https://images.unsplash.com/photo-1600857062241-98e5dba7f45e?w=800&q=80",
+    image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80",
     imageAlt: "Soap being poured into wooden mould",
     color: "#7B6D8D",
   },
