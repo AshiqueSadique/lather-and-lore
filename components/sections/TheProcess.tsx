@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useIsMobile } from "@/lib/hooks/useMediaQuery";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -62,20 +61,60 @@ const STAGES = [
   },
 ];
 
-// ── Mobile: vertical card list with InView animations ─────────────────────
-function MobileStageCard({ stage, index }: { stage: (typeof STAGES)[0]; index: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+// ── Mobile: each card gets its own GSAP ScrollTrigger ─────────────────────
+function MobileStageCard({
+  stage,
+  index,
+}: {
+  stage: (typeof STAGES)[0];
+  index: number;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+  const tagsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const card = cardRef.current;
+    const image = imageRef.current;
+    const text = textRef.current;
+    const tags = tagsRef.current;
+    if (!card || !image || !text || !tags) return;
+
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Set initial hidden state
+    gsap.set(card, { opacity: 0, y: 50 });
+    gsap.set(image, { scale: 0.92, opacity: 0 });
+    gsap.set(text, { opacity: 0, x: -24 });
+    gsap.set(tags.children, { opacity: 0, y: 16, stagger: 0.08 });
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: card,
+        start: "top 88%",
+        toggleActions: "play none none none",
+      },
+      defaults: {
+        duration: prefersReduced ? 0 : 0.75,
+        ease: "power3.out",
+      },
+    });
+
+    tl.to(card, { opacity: 1, y: 0 })
+      .to(image, { scale: 1, opacity: 1, duration: 0.9 }, "-=0.5")
+      .to(text, { opacity: 1, x: 0 }, "-=0.6")
+      .to(tags.children, { opacity: 1, y: 0, stagger: 0.08 }, "-=0.4");
+
+    return () => {
+      tl.scrollTrigger?.kill();
+      tl.kill();
+    };
+  }, []);
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-      className="relative"
-    >
-      {/* Stage number */}
+    <div ref={cardRef} className="relative" style={{ opacity: 0 }}>
+      {/* Stage badge */}
       <div className="flex items-center gap-4 mb-5">
         <span
           className="font-sans text-xs tracking-[0.3em] uppercase px-3 py-1.5 border"
@@ -90,8 +129,13 @@ function MobileStageCard({ stage, index }: { stage: (typeof STAGES)[0]; index: n
 
       {/* Image */}
       <div
+        ref={imageRef}
         className="relative w-full overflow-hidden mb-6"
-        style={{ aspectRatio: "16/9", borderRadius: "40% 40% 45% 55% / 30% 30% 40% 40%" }}
+        style={{
+          aspectRatio: "16/9",
+          borderRadius: "40% 40% 45% 55% / 30% 30% 40% 40%",
+          opacity: 0,
+        }}
       >
         <Image
           src={stage.image}
@@ -100,65 +144,77 @@ function MobileStageCard({ stage, index }: { stage: (typeof STAGES)[0]; index: n
           className="object-cover"
           sizes="95vw"
         />
-        <div className="absolute inset-0 opacity-15 mix-blend-multiply" style={{ backgroundColor: stage.color }} />
+        <div
+          className="absolute inset-0 opacity-15 mix-blend-multiply"
+          style={{ backgroundColor: stage.color }}
+        />
       </div>
 
-      {/* Text */}
-      <h3
-        className="font-serif text-charcoal mb-4 whitespace-pre-line"
-        style={{ fontSize: "clamp(1.8rem, 7vw, 2.5rem)", lineHeight: "1.05" }}
-      >
-        {stage.headline}
-      </h3>
-      <p className="font-sans text-sm text-charcoal/60 leading-relaxed mb-5">
-        {stage.body}
-      </p>
+      {/* Text block */}
+      <div ref={textRef} style={{ opacity: 0 }}>
+        <h3
+          className="font-serif text-charcoal mb-4 whitespace-pre-line"
+          style={{ fontSize: "clamp(1.8rem, 7vw, 2.5rem)", lineHeight: "1.05" }}
+        >
+          {stage.headline}
+        </h3>
+        <p className="font-sans text-sm text-charcoal/60 leading-relaxed mb-5">
+          {stage.body}
+        </p>
+      </div>
 
       {/* Ingredient tags */}
-      <div className="flex flex-wrap gap-2">
+      <div ref={tagsRef} className="flex flex-wrap gap-2">
         {stage.ingredients.map((ing) => (
           <span
             key={ing}
             className="font-sans text-[11px] tracking-[0.15em] uppercase px-3 py-1.5 border text-charcoal/50"
-            style={{ borderColor: `${stage.color}40` }}
+            style={{ borderColor: `${stage.color}40`, opacity: 0 }}
           >
             {ing}
           </span>
         ))}
       </div>
 
-      {/* Connector line to next */}
+      {/* Connector line */}
       {index < STAGES.length - 1 && (
         <div
-          className="absolute left-0 mt-8 w-px h-12"
-          style={{ backgroundColor: `${stage.color}30`, top: "100%" }}
           aria-hidden="true"
+          className="w-px h-12 mt-8 ml-1"
+          style={{ backgroundColor: `${stage.color}30` }}
         />
       )}
-    </motion.div>
+    </div>
   );
 }
 
-// ── Desktop: GSAP ScrollTrigger pin version ────────────────────────────────
+// ── Desktop: GSAP ScrollTrigger pin ───────────────────────────────────────
 function DesktopProcess() {
   const triggerRef = useRef<HTMLDivElement>(null);
   const [activeStage, setActiveStage] = useState(0);
   const countRef = useRef(0);
+  const stRef = useRef<ScrollTrigger | null>(null);
 
   useEffect(() => {
+    // Only run pin on actual desktop screens
+    if (window.innerWidth < 768) return;
+
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced || !triggerRef.current) return;
 
     const totalStages = STAGES.length;
 
-    ScrollTrigger.create({
+    stRef.current = ScrollTrigger.create({
       trigger: triggerRef.current,
       start: "top top",
       end: `+=${totalStages * 120}%`,
       pin: true,
       scrub: 0.5,
       onUpdate: (self) => {
-        const newStage = Math.min(Math.floor(self.progress * totalStages), totalStages - 1);
+        const newStage = Math.min(
+          Math.floor(self.progress * totalStages),
+          totalStages - 1
+        );
         if (newStage !== countRef.current) {
           countRef.current = newStage;
           setActiveStage(newStage);
@@ -166,7 +222,10 @@ function DesktopProcess() {
       },
     });
 
-    return () => ScrollTrigger.getAll().forEach((t) => t.kill());
+    return () => {
+      // Kill only THIS section's trigger — not all triggers globally
+      stRef.current?.kill();
+    };
   }, []);
 
   const stage = STAGES[activeStage];
@@ -180,28 +239,56 @@ function DesktopProcess() {
       />
 
       <div className="absolute top-12 left-16 z-10">
-        <p className="font-sans text-xs tracking-[0.4em] uppercase text-terracotta mb-1">The Craft</p>
-        <h2 className="font-serif text-charcoal" style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}>
+        <p className="font-sans text-xs tracking-[0.4em] uppercase text-terracotta mb-1">
+          The Craft
+        </p>
+        <h2
+          className="font-serif text-charcoal"
+          style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
+        >
           How We Make Them
         </h2>
       </div>
 
-      <div className="absolute top-12 right-16 z-10 text-right" aria-live="polite">
-        <span className="font-serif leading-none text-charcoal/6 select-none" style={{ fontSize: "8rem" }}>
+      <div
+        className="absolute top-12 right-16 z-10 text-right"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <span
+          className="font-serif leading-none text-charcoal/6 select-none"
+          style={{ fontSize: "8rem" }}
+        >
           {stage.number}
         </span>
       </div>
 
       {/* Progress dots */}
-      <div className="absolute left-16 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-10" role="tablist">
+      <div
+        className="absolute left-16 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-10"
+        role="tablist"
+        aria-label="Process stages"
+      >
         {STAGES.map((s, i) => (
-          <div key={s.title} role="tab" aria-selected={i === activeStage} className="flex items-center gap-3">
+          <div
+            key={s.title}
+            role="tab"
+            aria-selected={i === activeStage}
+            aria-label={`Stage ${i + 1}: ${s.title}`}
+            className="flex items-center gap-3"
+          >
             <div
               className="h-px transition-all duration-500"
-              style={{ width: i === activeStage ? "32px" : "12px", backgroundColor: i === activeStage ? stage.color : "#1C1A1730" }}
+              style={{
+                width: i === activeStage ? "32px" : "12px",
+                backgroundColor:
+                  i === activeStage ? stage.color : "#1C1A1730",
+              }}
             />
             {i === activeStage && (
-              <span className="font-sans text-[10px] tracking-[0.25em] uppercase text-charcoal/50">{s.title}</span>
+              <span className="font-sans text-[10px] tracking-[0.25em] uppercase text-charcoal/50">
+                {s.title}
+              </span>
             )}
           </div>
         ))}
@@ -209,6 +296,7 @@ function DesktopProcess() {
 
       <div className="absolute inset-0 flex items-center justify-center pt-24 pb-8 px-24">
         <div className="w-full max-w-5xl grid grid-cols-2 gap-12 items-center">
+          {/* Image */}
           <div className="relative">
             <AnimatePresence mode="wait">
               <motion.div
@@ -218,10 +306,22 @@ function DesktopProcess() {
                 exit={{ opacity: 0, scale: 1.04, x: 20 }}
                 transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
                 className="relative overflow-hidden"
-                style={{ aspectRatio: "4/3", borderRadius: "60% 40% 55% 45% / 45% 55% 45% 55%" }}
+                style={{
+                  aspectRatio: "4/3",
+                  borderRadius: "60% 40% 55% 45% / 45% 55% 45% 55%",
+                }}
               >
-                <Image src={stage.image} alt={stage.imageAlt} fill className="object-cover" sizes="45vw" />
-                <div className="absolute inset-0 opacity-20 mix-blend-multiply" style={{ backgroundColor: stage.color }} />
+                <Image
+                  src={stage.image}
+                  alt={stage.imageAlt}
+                  fill
+                  className="object-cover"
+                  sizes="45vw"
+                />
+                <div
+                  className="absolute inset-0 opacity-20 mix-blend-multiply"
+                  style={{ backgroundColor: stage.color }}
+                />
               </motion.div>
             </AnimatePresence>
 
@@ -242,12 +342,15 @@ function DesktopProcess() {
                     right: i === 1 ? "10%" : undefined,
                   }}
                 >
-                  <span className="font-sans text-[11px] tracking-[0.2em] uppercase text-charcoal/70">{ing}</span>
+                  <span className="font-sans text-[11px] tracking-[0.2em] uppercase text-charcoal/70">
+                    {ing}
+                  </span>
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
 
+          {/* Text */}
           <div className="pl-8">
             <AnimatePresence mode="wait">
               <motion.div
@@ -257,16 +360,27 @@ function DesktopProcess() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
               >
-                <h3 className="font-serif text-charcoal mb-6 whitespace-pre-line" style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", lineHeight: "1.05" }}>
+                <h3
+                  className="font-serif text-charcoal mb-6 whitespace-pre-line"
+                  style={{
+                    fontSize: "clamp(2rem, 4vw, 3.5rem)",
+                    lineHeight: "1.05",
+                  }}
+                >
                   {stage.headline}
                 </h3>
-                <p className="font-sans text-base text-charcoal/65 leading-relaxed mb-8 max-w-sm">{stage.body}</p>
+                <p className="font-sans text-base text-charcoal/65 leading-relaxed mb-8 max-w-sm">
+                  {stage.body}
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {stage.ingredients.map((ing) => (
                     <span
                       key={ing}
                       className="font-sans text-[11px] tracking-[0.15em] uppercase px-3 py-1.5 border text-charcoal/60"
-                      style={{ borderColor: `${stage.color}40`, borderRadius: "2px" }}
+                      style={{
+                        borderColor: `${stage.color}40`,
+                        borderRadius: "2px",
+                      }}
                     >
                       {ing}
                     </span>
@@ -281,30 +395,45 @@ function DesktopProcess() {
   );
 }
 
+// ── Root: render the right version based on actual screen width ────────────
 export default function TheProcess() {
-  const isMobile = useIsMobile();
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Wait for client to know screen size before rendering either version
+  // (avoids hydration mismatch and double-running GSAP)
+  if (isMobile === null) return null;
 
   return (
     <section id="process" className="relative bg-cream" aria-label="Our soap-making process">
-      {/* Mobile layout */}
-      <div className="process-mobile-list px-5 py-16">
-        <div className="mb-10">
-          <p className="font-sans text-xs tracking-[0.4em] uppercase text-terracotta mb-2">The Craft</p>
-          <h2 className="font-serif text-charcoal leading-none" style={{ fontSize: "clamp(2.2rem, 9vw, 3.5rem)" }}>
-            How We Make Them
-          </h2>
+      {isMobile ? (
+        <div className="px-5 py-16">
+          <div className="mb-10">
+            <p className="font-sans text-xs tracking-[0.4em] uppercase text-terracotta mb-2">
+              The Craft
+            </p>
+            <h2
+              className="font-serif text-charcoal leading-none"
+              style={{ fontSize: "clamp(2.2rem, 9vw, 3.5rem)" }}
+            >
+              How We Make Them
+            </h2>
+          </div>
+          <div className="flex flex-col gap-16">
+            {STAGES.map((stage, i) => (
+              <MobileStageCard key={stage.title} stage={stage} index={i} />
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-16">
-          {STAGES.map((stage, i) => (
-            <MobileStageCard key={stage.title} stage={stage} index={i} />
-          ))}
-        </div>
-      </div>
-
-      {/* Desktop layout */}
-      <div className="process-desktop-pin">
+      ) : (
         <DesktopProcess />
-      </div>
+      )}
     </section>
   );
 }

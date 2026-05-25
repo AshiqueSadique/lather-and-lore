@@ -145,6 +145,7 @@ export default function Hero() {
   const ctaRef = useRef<HTMLDivElement>(null);
   const [normalizedMouse, setNormalizedMouse] = useState({ x: 0, y: 0 });
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const stRef = useRef<ScrollTrigger | null>(null);
 
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
@@ -160,13 +161,15 @@ export default function Hero() {
   useEffect(() => {
     const hint = scrollHintRef.current;
     if (!hint) return;
-    ScrollTrigger.create({
+    stRef.current = ScrollTrigger.create({
       trigger: heroRef.current,
       start: "top top",
       end: "30% top",
       onUpdate: (self) => gsap.set(hint, { opacity: 1 - self.progress * 2.5 }),
     });
-    return () => ScrollTrigger.getAll().forEach((t) => t.kill());
+    return () => {
+      stRef.current?.kill();
+    };
   }, []);
 
   useEffect(() => {

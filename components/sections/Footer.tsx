@@ -67,12 +67,13 @@ function FooterAccordion({ title, links }: { title: string; links: string[] }) {
 export default function Footer() {
   const wordmarkRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLElement>(null);
+  const stRef = useRef<ScrollTrigger | null>(null);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced || !wordmarkRef.current || !footerRef.current) return;
 
-    ScrollTrigger.create({
+    stRef.current = ScrollTrigger.create({
       trigger: footerRef.current,
       start: "top bottom",
       end: "bottom bottom",
@@ -84,7 +85,9 @@ export default function Footer() {
       },
     });
 
-    return () => ScrollTrigger.getAll().forEach((t) => t.kill());
+    return () => {
+      stRef.current?.kill();
+    };
   }, []);
 
   return (
