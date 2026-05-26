@@ -268,8 +268,8 @@ export default function ProductCollection() {
         </p>
       </div>
 
-      {/* Product grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-charcoal/8" role="list">
+      {/* Product grid — cards on mobile, borderless grid on desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-px sm:bg-charcoal/8" role="list">
         {PRODUCTS.map((product, index) => {
           const ribbonVisible = !isTouch || tappedIndex === index;
           return (
@@ -277,7 +277,7 @@ export default function ProductCollection() {
               key={product.id}
               ref={(el) => { cardRefs.current[index] = el; }}
               role="listitem"
-              className="relative bg-cream overflow-hidden group cursor-pointer"
+              className="relative bg-cream overflow-hidden group cursor-pointer sm:rounded-none rounded-2xl sm:shadow-none shadow-[0_2px_16px_rgba(28,26,23,0.08)] sm:border-0 border border-charcoal/8"
               style={{
                 transform: `translate(${offsets[index].x}px, ${offsets[index].y}px)`,
                 transition: "transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)",
@@ -299,14 +299,18 @@ export default function ProductCollection() {
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
+                {/* Colour tint fallback shown while image loads */}
+                <div
+                  className="absolute inset-0 opacity-10"
+                  style={{ backgroundColor: product.color }}
+                  aria-hidden="true"
+                />
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 mix-blend-multiply"
                   style={{ backgroundColor: product.color }}
                 />
 
-                {/* "Add to Ritual" ribbon:
-                    — hover (desktop) or first-tap (mobile) reveals it
-                    — always visible on mobile after tap */}
+                {/* Ribbon: hidden on mobile until tap, always shows on desktop hover */}
                 <div
                   className="absolute inset-x-0 bottom-0 bg-charcoal/90 backdrop-blur-xs py-3 px-6 flex items-center justify-center gap-3 transition-transform duration-400 ease-out"
                   style={{
